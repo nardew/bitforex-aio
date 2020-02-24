@@ -1,0 +1,2 @@
+class BitforexException(Exception):
+	pass
