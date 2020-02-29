@@ -6,10 +6,10 @@ The project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ## [Pending release]
 
-## 0.0.1 - 2020-01-30
+## 1.0.0 - 2020-02-29
 
 ### Added
 
-- Initial version supporting limited set of REST calls and websockets
+- Initial version supporting full REST API and websockets
 
-[Pending release]: https://github.com/nardew/binance-aio/compare/0.0.1...HEAD
+[Pending release]: https://github.com/nardew/bitforex-aio/compare/0.0.1...HEAD

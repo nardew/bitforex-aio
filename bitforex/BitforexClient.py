@@ -40,7 +40,7 @@ class BitforexClient(object):
 	async def get_order_book(self, pair : Pair, depth : str = None) -> dict:
 		params = BitforexClient._clean_request_params({
 			"symbol": str(pair),
-			"level": depth,
+			"size": depth,
 		})
 
 		return await self._create_get("market/depth", params = params)
@@ -215,8 +215,6 @@ class BitforexClient(object):
 				params = {} if params is None else params
 				params['accessKey'] = self.api_key
 				params['signData'] = self._get_signature(resource, params, data)
-
-			headers['Accept'] = 'application/json'
 
 			if rest_call_type == enums.RestCallType.GET:
 				rest_call = self._get_rest_session().get(BitforexClient.REST_API_URI + resource, json = data, params = params, headers = headers, ssl = self.ssl_context)
