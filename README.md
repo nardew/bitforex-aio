@@ -9,8 +9,9 @@
 For changes see [CHANGELOG](https://github.com/nardew/bitforex-aio/blob/master/CHANGELOG.md).
 
 ### Features
-- access to full Bitforex's REST API (account details, market data, order management, ...) and websockets.
+- access to full Bitforex's REST API (account details, market data, order management, ...) and websockets
 - channels bundled in one or multiple websockets processed in parallel 
+- transparent connection management (automated heartbeats, ...)
 - lean architecture setting ground for the future extensions and customizations
 - fully asynchronous design aiming for the best performance
 

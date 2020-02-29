@@ -7,6 +7,7 @@ from typing import List, Callable, Any
 
 from bitforex.Pair import Pair
 from bitforex import enums
+from bitforex.PeriodicChecker import PeriodicChecker
 
 LOG = logging.getLogger(__name__)
 
@@ -42,6 +43,8 @@ class SubscriptionMgr(object):
 
 		self.subscriptions = subscriptions
 
+		self.ping_checker = PeriodicChecker(period_ms = 30 * 1000)
+
 	async def run(self) -> None:
 		for subscription in self.subscriptions:
 			await subscription.initialize()
@@ -50,21 +53,22 @@ class SubscriptionMgr(object):
 			# main loop ensuring proper reconnection after a graceful connection termination by the remote server
 			while True:
 				LOG.debug(f"Initiating websocket connection.")
-				async with websockets.connect(SubscriptionMgr.WEB_SOCKET_URI, ssl = self.ssl_context) as websocket:
+				async with websockets.connect(SubscriptionMgr.WEB_SOCKET_URI, ping_interval = None, ssl = self.ssl_context) as websocket:
 					subscription_message = self._create_subscription_message()
 					LOG.debug(f"> {subscription_message}")
 					await websocket.send(json.dumps(subscription_message))
 
 					# start processing incoming messages
 					while True:
-						response = json.loads(await websocket.recv())
+						response = await websocket.recv()
 						LOG.debug(f"< {response}")
 
-						if self._is_subscription_confirmation(response):
-							LOG.info(f"Subscription confirmed for id: {response['id']}")
-						# regular message
-						else:
-							await self.process_message(response)
+						if response != "pong_p":
+							await self.process_message(json.loads(await websocket.recv()))
+
+						if self.ping_checker.check():
+							LOG.debug(f"> ping_p")
+							await websocket.send("ping_p")
 		except asyncio.CancelledError:
 			LOG.warning(f"Websocket requested to be shutdown.")
 		except Exception:
@@ -81,13 +85,6 @@ class SubscriptionMgr(object):
 			})
 
 		return subscription_message
-
-	@staticmethod
-	def _is_subscription_confirmation(response):
-		if 'result' in response and response['result'] is None:
-			return True
-		else:
-			return False
 
 	async def process_message(self, response : dict) -> None:
 		for subscription in self.subscriptions:
