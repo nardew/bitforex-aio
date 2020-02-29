@@ -29,10 +29,71 @@ Before starting using `bitforex-aio`, it is necessary to take care of downloadin
 ### Examples
 #### REST API
 ```python
+client = BitforexClient(api_key, sec_key)
+
+# REST api calls
+print("REST API")
+
+print("\nExchange info:")
+await client.get_exchange_info()
+
+print("\nOrder book:")
+await client.get_order_book(pair = Pair('ETH', 'BTC'), depth = "1")
+
+print("\nTicker:")
+await client.get_ticker(pair = Pair('ETH', 'BTC'))
+
+print("\nSingle fund:")
+await client.get_single_fund(currency = "NOBS")
+
+print("\nFunds:")
+await client.get_funds()
+
+print("\nTrades:")
+await client.get_trades(pair = Pair('ETH', 'BTC'), size = "1")
+
+print("\nCandelsticks:")
+await client.get_candlesticks(pair = Pair('ETH', 'BTC'), interval = enums.CandelstickInterval.I_1W, size = "5")
+
+print("\nCreate order:")
+await client.create_order(Pair("ETH", "BTC"), side = enums.OrderSide.SELL, quantity = "1", price = "1")
+
+print("\nCreate multiple orders:")
+await client.create_multi_order(Pair("ETH", "BTC"),
+                                orders = [("1", "1", enums.OrderSide.SELL), ("2", "1", enums.OrderSide.SELL)])
+
+print("\nCancel order:")
+await client.cancel_order(pair = Pair('ETH', 'BTC'), order_id = "10")
+
+print("\nCancel multiple orders:")
+await client.cancel_multi_order(pair = Pair('ETH', 'BTC'), order_ids = ["10", "20"])
+
+print("\nCancel all orders:")
+await client.cancel_all_orders(pair = Pair('ETH', 'BTC'))
+
+print("\nGet order:")
+await client.get_order(pair = Pair('ETH', 'BTC'), order_id = "1")
+
+print("\nGet orders:")
+await client.get_orders(pair = Pair('ETH', 'BTC'), order_ids = ["1", "2"])
+
+print("\nFind orders:")
+await client.find_order(pair = Pair('ETH', 'BTC'), state = enums.OrderState.PENDING)
 ```
 
 #### WEBSOCKETS
 ```python
+client = BitforexClient(api_key, sec_key)
+
+client.compose_subscriptions([
+    OrderBookSubscription(pair = Pair('ETH', 'BTC'), depth = "0", callbacks = [order_book_update]),
+    TradeSubscription(pair = Pair('ETH', 'BTC'), size = "20", callbacks = [trade_update]),
+])
+
+# Execute all websockets asynchronously
+await client.start_subscriptions()
+
+await client.close()
 ```
 
 All examples can be found in `client-example/client.py` in the GitHub repository.
