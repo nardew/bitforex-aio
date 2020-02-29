@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import List, Callable, Any
 
 from bitforex.Pair import Pair
+from bitforex import enums
 
 LOG = logging.getLogger(__name__)
 
@@ -15,6 +16,10 @@ class Subscription(ABC):
 
 	@abstractmethod
 	def get_channel_name(self) -> str:
+		pass
+
+	@abstractmethod
+	def get_params(self) -> dict:
 		pass
 
 	async def initialize(self) -> None:
@@ -29,9 +34,7 @@ class Subscription(ABC):
 
 
 class SubscriptionMgr(object):
-	WEB_SOCKET_URI = "wss://stream.binance.com:9443/"
-
-	SUBSCRIPTION_ID = 0
+	WEB_SOCKET_URI = "wss://www.bitforex.com/mkapi/coinGroup1/ws"
 
 	def __init__(self, subscriptions : List[Subscription], api_key : str, ssl_context = None):
 		self.api_key = api_key
@@ -47,9 +50,7 @@ class SubscriptionMgr(object):
 			# main loop ensuring proper reconnection after a graceful connection termination by the remote server
 			while True:
 				LOG.debug(f"Initiating websocket connection.")
-				uri = SubscriptionMgr.WEB_SOCKET_URI + self._create_stream_uri()
-				LOG.debug(f"Websocket uri: {uri}")
-				async with websockets.connect(uri, ssl = self.ssl_context, ping_interval = None) as websocket:
+				async with websockets.connect(SubscriptionMgr.WEB_SOCKET_URI, ssl = self.ssl_context) as websocket:
 					subscription_message = self._create_subscription_message()
 					LOG.debug(f"> {subscription_message}")
 					await websocket.send(json.dumps(subscription_message))
@@ -70,19 +71,16 @@ class SubscriptionMgr(object):
 			LOG.error(f"Exception occurred. Websocket will be closed.")
 			raise
 
-	def _create_subscription_message(self) -> dict:
-		SubscriptionMgr.SUBSCRIPTION_ID += 1
+	def _create_subscription_message(self) -> List[dict]:
+		subscription_message = []
+		for subscription in self.subscriptions:
+			subscription_message.append({
+				"type": "subHq",
+				"event": subscription.get_channel_name(),
+				"param": subscription.get_params(),
+			})
 
-		return {
-			"method": "SUBSCRIBE",
-			"params": [
-				subscription.get_channel_name() for subscription in self.subscriptions
-			],
-			"id": SubscriptionMgr.SUBSCRIPTION_ID
-		}
-
-	def _create_stream_uri(self) -> str:
-		return "stream?streams=" + "/".join([subscription.get_channel_name() for subscription in self.subscriptions])
+		return subscription_message
 
 	@staticmethod
 	def _is_subscription_confirmation(response):
@@ -93,37 +91,70 @@ class SubscriptionMgr(object):
 
 	async def process_message(self, response : dict) -> None:
 		for subscription in self.subscriptions:
-			if subscription.get_channel_name() == response["stream"]:
+			if subscription.get_channel_name() == response["event"]:
 				await subscription.process_message(response["data"])
 				break
 
-class BestOrderBookTickerSubscription(Subscription):
-	def __init__(self, callbacks : List[Callable[[dict], Any]] = None):
+class OrderBookSubscription(Subscription):
+	def __init__(self, pair : Pair, depth : str, callbacks : List[Callable[[dict], Any]] = None):
 		super().__init__(callbacks)
 
-	def get_channel_name(self):
-		return "!bookTicker"
+		self.pair = pair
+		self.depth = depth
 
-class TradeSubscription(Subscription):
-	def __init__(self, pair : Pair, callbacks: List[Callable[[dict], Any]] = None):
+	def get_channel_name(self):
+		return "depth10"
+
+	def get_params(self):
+		return {
+			"businessType": str(self.pair),
+			"dType": self.depth
+		}
+
+class Ticker24hSubscription(Subscription):
+	def __init__(self, pair : Pair, callbacks : List[Callable[[dict], Any]] = None):
 		super().__init__(callbacks)
 
 		self.pair = pair
 
 	def get_channel_name(self):
-		return str(self.pair).lower() + "@trade"
+		return "ticker"
 
-class AccountSubscription(Subscription):
-	def __init__(self, binance_client, callbacks: List[Callable[[dict], Any]] = None):
+	def get_params(self):
+		return {
+			"businessType": str(self.pair)
+		}
+
+class TickerSubscription(Subscription):
+	def __init__(self, pair : Pair, size : str, interval = enums.CandelstickInterval, callbacks : List[Callable[[dict], Any]] = None):
 		super().__init__(callbacks)
 
-		self.binance_client = binance_client
-		self.listen_key = None
-
-	async def initialize(self):
-		listen_key_response = await self.binance_client.get_listen_key()
-		self.listen_key = listen_key_response["response"]["listenKey"]
-		LOG.debug(f'Listen key: {self.listen_key}')
+		self.pair = pair
+		self.size = size
+		self.interval = interval
 
 	def get_channel_name(self):
-		return self.listen_key
+		return "kline"
+
+	def get_params(self):
+		return {
+			"businessType": str(self.pair),
+			"size": self.size,
+			"kType": self.interval.value
+		}
+
+class TradeSubscription(Subscription):
+	def __init__(self, pair : Pair, size : str, callbacks: List[Callable[[dict], Any]] = None):
+		super().__init__(callbacks)
+
+		self.pair = pair
+		self.size = size
+
+	def get_channel_name(self):
+		return "trade"
+
+	def get_params(self):
+		return {
+			"businessType": str(self.pair),
+			"size": self.size
+		}
