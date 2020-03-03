@@ -1,4 +1,4 @@
-# bitforex-aio 1.0.0.
+# bitforex-aio 1.0.0
 
 [![](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-365/) [![](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-374/)
 
@@ -115,3 +115,7 @@ If you feel you want to get in touch, then please
 
 - preferably use Github Issues, or
 - send an e-mail to <img src="http://safemail.justlikeed.net/e/8701dfa9bd62d1de196684aa746f9d32.png" border="0" align="absbottom">
+
+### Affiliation
+
+In case you are interested in asynchronous clients for other exchanges, pay a visit to my other libraries [binance-aio](https://github.com/nardew/binance-aio) or [bitpanda-aio](https://github.com/nardew/bitpanda-aio). In case you are interested in an automated trading bot, check out [creten](https://github.com/nardew/creten).
