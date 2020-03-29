@@ -9,7 +9,7 @@ requirements = [line.strip() for line in requirements]
 
 setuptools.setup(
 	name="bitforex-aio",
-	version="1.0.0",
+	version="1.0.1",
 	author="nardew",
 	author_email="bitforex.aio@gmail.com",
 	description="Bitforex asynchronous python client",
