@@ -1,6 +1,6 @@
 # bitforex-aio 1.0.1
 
-**Announcement:**`bitforex-aio` has been replaced by a new library [`cryptolib-aio`](https://github.com/nardew/cryptolib-aio). `cryptolib-aio` offers the very same functionality as `bitforex-aio` but on top it provides access to multiple cryptoexchanges and other (mostly technical) new features. You can keep using `bitforex-aio` but please note no new features/bugfixes will be implemented. We recommend to migrate to `cryptolib-aio`.
+**Announcement:** `bitforex-aio` has been replaced by a new library [`cryptoxlib-aio`](https://github.com/nardew/cryptoxlib-aio). `cryptoxlib-aio` offers the very same functionality as `bitforex-aio` but on top it provides access to multiple cryptoexchanges and other (mostly technical) new features. You can keep using `bitforex-aio` but please note no new features/bugfixes will be implemented. We recommend to migrate to `cryptoxlib-aio`.
 
 ----
 
